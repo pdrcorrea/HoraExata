@@ -30,6 +30,12 @@
       --shadow: 0 40px 120px rgba(0,0,0,.35);
 
       --r: 34px;
+
+      /* Momento do dia (default: tarde) */
+      --dayGlow1: rgba(38,198,207,.18);
+      --dayGlow2: rgba(87,184,231,.14);
+      --washTop:  rgba(7,22,36,.20);
+      --washBot:  rgba(7,22,36,.42);
     }
 
     *{ box-sizing:border-box; }
@@ -40,20 +46,34 @@
       font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       color: var(--text);
       overflow:hidden;
+
+      /* Fundo dinâmico (glows mudam por horário) + background da marca */
       background:
-        radial-gradient(1400px 900px at 20% 15%, rgba(38,198,207,.18), transparent 60%),
-        radial-gradient(1000px 700px at 80% 75%, rgba(87,184,231,.14), transparent 60%),
+        radial-gradient(1400px 900px at 20% 15%, var(--dayGlow1), transparent 60%),
+        radial-gradient(1000px 700px at 80% 75%, var(--dayGlow2), transparent 60%),
         url("assets/bg-blue.png");
       background-size: cover;
       background-position: center;
+
+      transition: background 1.6s ease;
     }
 
-    /* camada de suavização */
+    /* camada de suavização dinâmica */
     .wash{
       position:fixed;
       inset:0;
-      background: linear-gradient(180deg, rgba(7,22,36,.25), rgba(7,22,36,.45));
+      background: linear-gradient(180deg, var(--washTop), var(--washBot));
       z-index:0;
+      transition: background 1.6s ease;
+    }
+
+    /* ruído sutil para “cristal” */
+    .noise{
+      position:fixed; inset:0; pointer-events:none; z-index:0;
+      opacity:.08;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.4'/%3E%3C/svg%3E");
+      background-size:180px 180px;
+      mix-blend-mode:overlay;
     }
 
     /* Centralização */
@@ -63,11 +83,12 @@
       place-items:center;
       position:relative;
       z-index:1;
+      padding: clamp(18px, 3vw, 42px);
     }
 
-    /* Badge glass central */
+    /* Badge glass central (ícone + hora + data + local) */
     .clockBadge{
-      padding: 54px 64px;
+      padding: clamp(26px, 4.2vw, 56px) clamp(22px, 4.8vw, 64px);
       border-radius: var(--r);
       background: linear-gradient(135deg, var(--glass), var(--glass2));
       border: 1px solid var(--stroke);
@@ -75,11 +96,11 @@
       -webkit-backdrop-filter: blur(22px);
       box-shadow: var(--shadow);
       text-align:center;
-      min-width: 520px;
+      width: min(980px, 92vw);
 
       /* animação inicial */
       opacity: 0;
-      transform: translateY(20px) scale(.96);
+      transform: translateY(18px) scale(.975);
       animation: enter 1.2s cubic-bezier(.22,1,.36,1) forwards;
     }
 
@@ -93,7 +114,7 @@
     .icon{
       width: 76px;
       height: 76px;
-      margin: 0 auto 26px;
+      margin: 0 auto clamp(14px, 2.4vw, 26px);
       display:grid;
       place-items:center;
       border-radius: 22px;
@@ -106,86 +127,92 @@
       color: #fff;
     }
 
+    /* Data em cima (estilo painel) */
+    .date{
+      font-size: clamp(14px, 1.6vw, 20px);
+      font-weight: 600;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: var(--dim);
+      margin-bottom: clamp(10px, 1.8vw, 18px);
+    }
+
+    /* Hora gigante (sem segundos) */
     .time{
-      font-size: clamp(110px, 18vw, 180px);
+      font-size: clamp(96px, 16.5vw, 180px);
       font-weight: 200;
       letter-spacing: .04em;
       line-height: 1;
     }
 
-    .date{
-      margin-top: 18px;
-      font-size: 20px;
-      font-weight: 600;
-      letter-spacing: .18em;
-      text-transform: uppercase;
-      color: var(--dim);
-    }
-
+    /* Local */
     .location{
-      margin-top: 18px;
+      margin-top: clamp(12px, 2.2vw, 18px);
       display:flex;
       justify-content:center;
       align-items:center;
       gap: 8px;
-      font-size: 16px;
+      font-size: clamp(12px, 1.3vw, 16px);
       letter-spacing: .14em;
       text-transform: uppercase;
       color: var(--faint);
     }
     .location .material-icons-outlined{
       font-size: 20px;
+      opacity:.95;
     }
 
-    /* Marca discreta */
+    /* Assinatura PontoView discreta */
     .brand{
       position: fixed;
       bottom: 16px;
       right: 18px;
       opacity: .35;
-      z-index:1;
+      z-index:2;
       pointer-events:none;
+      filter: drop-shadow(0 10px 18px rgba(0,0,0,.18));
     }
     .brand img{
       height: 22px;
+      width:auto;
+      display:block;
     }
 
-    @media (max-width:768px){
-      .clockBadge{
-        min-width: unset;
-        padding: 40px 28px;
-      }
-      .date{ font-size: 16px; }
-      .location{ font-size: 14px; }
+    @media (max-width: 560px){
+      .icon{ width:66px; height:66px; border-radius:20px; }
+      .icon .material-icons-outlined{ font-size:34px; }
+      .brand{ right: 12px; bottom: 12px; opacity:.45; }
+      .brand img{ height: 20px; }
     }
   </style>
 </head>
 
 <body>
-  <div class="wash"></div>
+  <div class="wash" aria-hidden="true"></div>
+  <div class="noise" aria-hidden="true"></div>
 
   <main class="app">
-    <section class="clockBadge">
-      <div class="icon">
+    <section class="clockBadge" aria-label="Painel de horário">
+      <div class="icon" aria-hidden="true">
         <span class="material-icons-outlined">schedule</span>
       </div>
 
-      <div class="time" id="time">--:--</div>
       <div class="date" id="date">—</div>
+      <div class="time" id="time">--:--</div>
 
-      <div class="location">
-        <span class="material-icons-outlined">location_on</span>
+      <div class="location" aria-label="Localização aproximada por IP">
+        <span class="material-icons-outlined" aria-hidden="true">location_on</span>
         <span id="city">Localizando…</span>
       </div>
     </section>
   </main>
 
-  <div class="brand">
-    <img src="assets/logo.png" alt="PontoView">
+  <div class="brand" aria-hidden="true">
+    <img src="assets/logo.png" alt="">
   </div>
 
   <script>
-    /* ===== Relógio ===== */
+    /* ===== Relógio (sem segundos) + data por extenso ===== */
     const weekday = ["DOMINGO","SEGUNDA","TERÇA","QUARTA","QUINTA","SEXTA","SÁBADO"];
     const month   = ["JANEIRO","FEVEREIRO","MARÇO","ABRIL","MAIO","JUNHO","JULHO","AGOSTO","SETEMBRO","OUTUBRO","NOVEMBRO","DEZEMBRO"];
 
@@ -193,28 +220,68 @@
     const dateEl = document.getElementById("date");
     const cityEl = document.getElementById("city");
 
-    function pad(n){ return String(n).padStart(2,"0"); }
+    function pad2(n){ return String(n).padStart(2,"0"); }
 
     function updateClock(){
       const d = new Date();
-      timeEl.textContent = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
-      dateEl.textContent = `${weekday[d.getDay()]}, ${pad(d.getDate())} DE ${month[d.getMonth()]}`;
+      timeEl.textContent = `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+      dateEl.textContent = `${weekday[d.getDay()]}, ${pad2(d.getDate())} DE ${month[d.getMonth()]}`;
     }
 
-    updateClock();
-    setInterval(updateClock, 1000);
+    // Atualiza no “tick” do segundo (não mostra segundos, mas mantém minuto certinho)
+    (function startClock(){
+      updateClock();
+      const ms = 1000 - new Date().getMilliseconds();
+      setTimeout(() => { updateClock(); setInterval(updateClock, 1000); }, ms);
+    })();
+
+    /* ===== Momento do dia (adaptado ao layout atual) ===== */
+    function applyDayMoment(){
+      const hour = new Date().getHours();
+      const root = document.documentElement;
+
+      if (hour >= 6 && hour < 12){
+        // 🌅 MANHÃ (mais claro e aberto)
+        root.style.setProperty("--dayGlow1", "rgba(87,184,231,.30)");
+        root.style.setProperty("--dayGlow2", "rgba(38,198,207,.24)");
+        root.style.setProperty("--washTop",  "rgba(7,22,36,.14)");
+        root.style.setProperty("--washBot",  "rgba(7,22,36,.32)");
+      } else if (hour >= 12 && hour < 18){
+        // ☀️ TARDE (equilibrado)
+        root.style.setProperty("--dayGlow1", "rgba(38,198,207,.20)");
+        root.style.setProperty("--dayGlow2", "rgba(87,184,231,.16)");
+        root.style.setProperty("--washTop",  "rgba(7,22,36,.20)");
+        root.style.setProperty("--washBot",  "rgba(7,22,36,.42)");
+      } else {
+        // 🌙 NOITE (mais profundo)
+        root.style.setProperty("--dayGlow1", "rgba(31,95,168,.22)");
+        root.style.setProperty("--dayGlow2", "rgba(11,42,85,.34)");
+        root.style.setProperty("--washTop",  "rgba(7,22,36,.30)");
+        root.style.setProperty("--washBot",  "rgba(7,22,36,.58)");
+      }
+    }
+
+    applyDayMoment();
+    setInterval(applyDayMoment, 10 * 60 * 1000);
 
     /* ===== Localização por IP (sem permissão) ===== */
-    fetch("https://ipapi.co/json/")
-      .then(r => r.json())
-      .then(d => {
-        if (d && d.city){
-          cityEl.textContent = `${d.city.toUpperCase()} - ${d.region_code || d.country_code}`;
-        } else {
-          cityEl.textContent = "LOCAL NÃO IDENTIFICADO";
-        }
-      })
-      .catch(() => cityEl.textContent = "LOCAL NÃO IDENTIFICADO");
+    (async function loadCity(){
+      try{
+        const r = await fetch("https://ipapi.co/json/", { cache: "no-store" });
+        const d = await r.json();
+
+        const city = (d && d.city) ? String(d.city).toUpperCase() : null;
+        const uf = (d && (d.region_code || d.region)) ? String(d.region_code || d.region).toUpperCase() : null;
+        const cc = (d && d.country_code) ? String(d.country_code).toUpperCase() : null;
+
+        if (city && uf) cityEl.textContent = `${city} - ${uf}`;
+        else if (city && cc) cityEl.textContent = `${city} - ${cc}`;
+        else if (city) cityEl.textContent = city;
+        else cityEl.textContent = "LOCAL NÃO IDENTIFICADO";
+      } catch {
+        cityEl.textContent = "LOCAL NÃO IDENTIFICADO";
+      }
+    })();
   </script>
 </body>
 </html>
