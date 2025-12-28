@@ -3,14 +3,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>PontoView • Horário Atual</title>
+  <title>PontoView • Relógio</title>
 
   <!-- Material Icons -->
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet" />
   <!-- Fonte -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;600;700&display=swap" rel="stylesheet">
 
   <style>
     :root{
@@ -19,10 +19,17 @@
       --pv-sky:#57B8E7;
       --pv-cyan:#26C6CF;
 
-      --glass: rgba(255,255,255,.18);
-      --glassStroke: rgba(255,255,255,.30);
+      --glass: rgba(255,255,255,.14);
+      --glass2: rgba(255,255,255,.08);
+      --stroke: rgba(255,255,255,.26);
 
-      --text:#0F172A;
+      --text: rgba(255,255,255,.94);
+      --dim: rgba(255,255,255,.78);
+      --faint: rgba(255,255,255,.60);
+
+      --shadow: 0 40px 120px rgba(0,0,0,.35);
+
+      --r: 34px;
     }
 
     *{ box-sizing:border-box; }
@@ -30,143 +37,161 @@
 
     body{
       margin:0;
-      font-family: Inter, system-ui, sans-serif;
-      background:#F3F6FB;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--text);
       overflow:hidden;
-      color:var(--text);
-    }
-
-    /* Background da marca */
-    .bgPattern{
-      position:fixed;
-      inset:0;
       background:
-        radial-gradient(1200px 700px at 20% 15%, rgba(38,198,207,.12), transparent 55%),
-        radial-gradient(900px 600px at 80% 80%, rgba(87,184,231,.12), transparent 60%),
+        radial-gradient(1400px 900px at 20% 15%, rgba(38,198,207,.18), transparent 60%),
+        radial-gradient(1000px 700px at 80% 75%, rgba(87,184,231,.14), transparent 60%),
         url("assets/bg-blue.png");
-      background-size:cover;
-      background-position:center;
-      opacity:.12;
-      z-index:-2;
-    }
-    .bgWash{
-      position:fixed;
-      inset:0;
-      background:linear-gradient(180deg, rgba(243,246,251,.82), rgba(243,246,251,.92));
-      z-index:-1;
+      background-size: cover;
+      background-position: center;
     }
 
-    /* Container */
+    /* camada de suavização */
+    .wash{
+      position:fixed;
+      inset:0;
+      background: linear-gradient(180deg, rgba(7,22,36,.25), rgba(7,22,36,.45));
+      z-index:0;
+    }
+
+    /* Centralização */
     .app{
       height:100%;
       display:grid;
       place-items:center;
-      padding:32px;
-    }
-
-    /* Painel central */
-    .clockPanel{
-      width:100%;
-      max-width:920px;
-      padding:48px 56px;
-      border-radius:28px;
-      background:linear-gradient(135deg, rgba(11,42,85,.95), rgba(31,95,168,.95));
-      box-shadow:0 30px 70px rgba(0,0,0,.25);
-      color:#fff;
-      text-align:center;
       position:relative;
+      z-index:1;
     }
 
-    /* Badge glass */
-    .badge{
-      width:72px;
-      height:72px;
-      margin:0 auto 24px;
+    /* Badge glass central */
+    .clockBadge{
+      padding: 54px 64px;
+      border-radius: var(--r);
+      background: linear-gradient(135deg, var(--glass), var(--glass2));
+      border: 1px solid var(--stroke);
+      backdrop-filter: blur(22px);
+      -webkit-backdrop-filter: blur(22px);
+      box-shadow: var(--shadow);
+      text-align:center;
+      min-width: 520px;
+
+      /* animação inicial */
+      opacity: 0;
+      transform: translateY(20px) scale(.96);
+      animation: enter 1.2s cubic-bezier(.22,1,.36,1) forwards;
+    }
+
+    @keyframes enter{
+      to{
+        opacity:1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .icon{
+      width: 76px;
+      height: 76px;
+      margin: 0 auto 26px;
       display:grid;
       place-items:center;
-      border-radius:22px;
-      background:var(--glass);
-      border:1px solid var(--glassStroke);
-      backdrop-filter:blur(14px);
-      -webkit-backdrop-filter:blur(14px);
-      box-shadow:0 14px 30px rgba(0,0,0,.25);
+      border-radius: 22px;
+      background: rgba(255,255,255,.20);
+      border: 1px solid rgba(255,255,255,.32);
+      box-shadow: 0 14px 36px rgba(0,0,0,.25);
     }
-    .badge .material-icons-outlined{
-      font-size:38px;
-      color:#fff;
+    .icon .material-icons-outlined{
+      font-size: 40px;
+      color: #fff;
     }
 
-    .title{
-      font-size:20px;
-      font-weight:700;
-      letter-spacing:.18em;
-      text-transform:uppercase;
-      opacity:.95;
-    }
-
-    /* Hora gigante */
     .time{
-      margin:28px 0 16px;
-      font-size:clamp(96px, 18vw, 180px);
-      font-weight:200;
-      letter-spacing:.04em;
-      line-height:1;
+      font-size: clamp(110px, 18vw, 180px);
+      font-weight: 200;
+      letter-spacing: .04em;
+      line-height: 1;
     }
 
     .date{
-      font-size:22px;
-      font-weight:700;
-      letter-spacing:.18em;
-      text-transform:uppercase;
-      opacity:.92;
+      margin-top: 18px;
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: var(--dim);
     }
 
-    /* Assinatura */
+    .location{
+      margin-top: 18px;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      gap: 8px;
+      font-size: 16px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--faint);
+    }
+    .location .material-icons-outlined{
+      font-size: 20px;
+    }
+
+    /* Marca discreta */
     .brand{
-      position:absolute;
-      right:24px;
-      bottom:20px;
-      opacity:.35;
+      position: fixed;
+      bottom: 16px;
+      right: 18px;
+      opacity: .35;
+      z-index:1;
       pointer-events:none;
     }
     .brand img{
-      height:22px;
+      height: 22px;
     }
 
     @media (max-width:768px){
-      .clockPanel{ padding:36px 28px; }
-      .date{ font-size:16px; }
+      .clockBadge{
+        min-width: unset;
+        padding: 40px 28px;
+      }
+      .date{ font-size: 16px; }
+      .location{ font-size: 14px; }
     }
   </style>
 </head>
 
 <body>
-  <div class="bgPattern"></div>
-  <div class="bgWash"></div>
+  <div class="wash"></div>
 
   <main class="app">
-    <section class="clockPanel">
-      <div class="badge">
+    <section class="clockBadge">
+      <div class="icon">
         <span class="material-icons-outlined">schedule</span>
       </div>
-
-      <div class="title">Horário Atual</div>
 
       <div class="time" id="time">--:--</div>
       <div class="date" id="date">—</div>
 
-      <div class="brand">
-        <img src="assets/logo.png" alt="PontoView">
+      <div class="location">
+        <span class="material-icons-outlined">location_on</span>
+        <span id="city">Localizando…</span>
       </div>
     </section>
   </main>
 
+  <div class="brand">
+    <img src="assets/logo.png" alt="PontoView">
+  </div>
+
   <script>
+    /* ===== Relógio ===== */
     const weekday = ["DOMINGO","SEGUNDA","TERÇA","QUARTA","QUINTA","SEXTA","SÁBADO"];
     const month   = ["JANEIRO","FEVEREIRO","MARÇO","ABRIL","MAIO","JUNHO","JULHO","AGOSTO","SETEMBRO","OUTUBRO","NOVEMBRO","DEZEMBRO"];
 
     const timeEl = document.getElementById("time");
     const dateEl = document.getElementById("date");
+    const cityEl = document.getElementById("city");
 
     function pad(n){ return String(n).padStart(2,"0"); }
 
@@ -178,6 +203,18 @@
 
     updateClock();
     setInterval(updateClock, 1000);
+
+    /* ===== Localização por IP (sem permissão) ===== */
+    fetch("https://ipapi.co/json/")
+      .then(r => r.json())
+      .then(d => {
+        if (d && d.city){
+          cityEl.textContent = `${d.city.toUpperCase()} - ${d.region_code || d.country_code}`;
+        } else {
+          cityEl.textContent = "LOCAL NÃO IDENTIFICADO";
+        }
+      })
+      .catch(() => cityEl.textContent = "LOCAL NÃO IDENTIFICADO");
   </script>
 </body>
 </html>
