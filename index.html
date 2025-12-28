@@ -14,11 +14,6 @@
 
   <style>
     :root{
-      --pv-navy:#0B2A55;
-      --pv-blue:#1F5FA8;
-      --pv-sky:#57B8E7;
-      --pv-cyan:#26C6CF;
-
       --glass: rgba(255,255,255,.14);
       --glass2: rgba(255,255,255,.08);
       --stroke: rgba(255,255,255,.26);
@@ -28,7 +23,6 @@
       --faint: rgba(255,255,255,.60);
 
       --shadow: 0 40px 120px rgba(0,0,0,.35);
-
       --r: 34px;
 
       /* Momento do dia (default: tarde) */
@@ -47,7 +41,6 @@
       color: var(--text);
       overflow:hidden;
 
-      /* Fundo dinâmico (glows mudam por horário) + background da marca */
       background:
         radial-gradient(1400px 900px at 20% 15%, var(--dayGlow1), transparent 60%),
         radial-gradient(1000px 700px at 80% 75%, var(--dayGlow2), transparent 60%),
@@ -58,7 +51,6 @@
       transition: background 1.6s ease;
     }
 
-    /* camada de suavização dinâmica */
     .wash{
       position:fixed;
       inset:0;
@@ -67,7 +59,6 @@
       transition: background 1.6s ease;
     }
 
-    /* ruído sutil para “cristal” */
     .noise{
       position:fixed; inset:0; pointer-events:none; z-index:0;
       opacity:.08;
@@ -76,7 +67,6 @@
       mix-blend-mode:overlay;
     }
 
-    /* Centralização */
     .app{
       height:100%;
       display:grid;
@@ -86,7 +76,6 @@
       padding: clamp(18px, 3vw, 42px);
     }
 
-    /* Badge glass central (ícone + hora + data + local) */
     .clockBadge{
       padding: clamp(26px, 4.2vw, 56px) clamp(22px, 4.8vw, 64px);
       border-radius: var(--r);
@@ -98,17 +87,13 @@
       text-align:center;
       width: min(980px, 92vw);
 
-      /* animação inicial */
       opacity: 0;
       transform: translateY(18px) scale(.975);
       animation: enter 1.2s cubic-bezier(.22,1,.36,1) forwards;
     }
 
     @keyframes enter{
-      to{
-        opacity:1;
-        transform: translateY(0) scale(1);
-      }
+      to{ opacity:1; transform: translateY(0) scale(1); }
     }
 
     .icon{
@@ -127,7 +112,6 @@
       color: #fff;
     }
 
-    /* Data em cima (estilo painel) */
     .date{
       font-size: clamp(14px, 1.6vw, 20px);
       font-weight: 600;
@@ -137,7 +121,6 @@
       margin-bottom: clamp(10px, 1.8vw, 18px);
     }
 
-    /* Hora gigante (sem segundos) */
     .time{
       font-size: clamp(96px, 16.5vw, 180px);
       font-weight: 200;
@@ -145,7 +128,6 @@
       line-height: 1;
     }
 
-    /* Local */
     .location{
       margin-top: clamp(12px, 2.2vw, 18px);
       display:flex;
@@ -157,12 +139,8 @@
       text-transform: uppercase;
       color: var(--faint);
     }
-    .location .material-icons-outlined{
-      font-size: 20px;
-      opacity:.95;
-    }
+    .location .material-icons-outlined{ font-size: 20px; opacity:.95; }
 
-    /* Assinatura PontoView discreta */
     .brand{
       position: fixed;
       bottom: 16px;
@@ -228,57 +206,121 @@
       dateEl.textContent = `${weekday[d.getDay()]}, ${pad2(d.getDate())} DE ${month[d.getMonth()]}`;
     }
 
-    // Atualiza no “tick” do segundo (não mostra segundos, mas mantém minuto certinho)
     (function startClock(){
       updateClock();
       const ms = 1000 - new Date().getMilliseconds();
       setTimeout(() => { updateClock(); setInterval(updateClock, 1000); }, ms);
     })();
 
-    /* ===== Momento do dia (adaptado ao layout atual) ===== */
+    /* ===== Momento do dia ===== */
     function applyDayMoment(){
       const hour = new Date().getHours();
       const root = document.documentElement;
 
       if (hour >= 6 && hour < 12){
-        // 🌅 MANHÃ (mais claro e aberto)
         root.style.setProperty("--dayGlow1", "rgba(87,184,231,.30)");
         root.style.setProperty("--dayGlow2", "rgba(38,198,207,.24)");
         root.style.setProperty("--washTop",  "rgba(7,22,36,.14)");
         root.style.setProperty("--washBot",  "rgba(7,22,36,.32)");
       } else if (hour >= 12 && hour < 18){
-        // ☀️ TARDE (equilibrado)
         root.style.setProperty("--dayGlow1", "rgba(38,198,207,.20)");
         root.style.setProperty("--dayGlow2", "rgba(87,184,231,.16)");
         root.style.setProperty("--washTop",  "rgba(7,22,36,.20)");
         root.style.setProperty("--washBot",  "rgba(7,22,36,.42)");
       } else {
-        // 🌙 NOITE (mais profundo)
         root.style.setProperty("--dayGlow1", "rgba(31,95,168,.22)");
         root.style.setProperty("--dayGlow2", "rgba(11,42,85,.34)");
         root.style.setProperty("--washTop",  "rgba(7,22,36,.30)");
         root.style.setProperty("--washBot",  "rgba(7,22,36,.58)");
       }
     }
-
     applyDayMoment();
     setInterval(applyDayMoment, 10 * 60 * 1000);
 
-    /* ===== Localização por IP (sem permissão) ===== */
+    /* ===== Localização por IP (robusta / sem permissão) ===== */
+    function fetchWithTimeout(url, opts = {}, timeoutMs = 4500){
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), timeoutMs);
+      return fetch(url, { ...opts, signal: ctrl.signal }).finally(() => clearTimeout(t));
+    }
+    function normStr(v){
+      if (v == null) return null;
+      const s = String(v).trim();
+      return s ? s : null;
+    }
+    function toNum(v){
+      const n = Number(v);
+      return Number.isFinite(n) ? n : null;
+    }
+    async function getIpLocationRobust(){
+      const providers = [
+        async () => {
+          const r = await fetchWithTimeout("https://ipwho.is/?lang=pt", { cache:"no-store" });
+          const d = await r.json();
+          if (!d || d.success === false) throw new Error("ipwho.is failed");
+          return {
+            city: normStr(d.city),
+            region: normStr(d.region_code || d.region),
+            country: normStr(d.country_code),
+            lat: toNum(d.latitude),
+            lon: toNum(d.longitude),
+            source: "ipwho.is"
+          };
+        },
+        async () => {
+          const r = await fetchWithTimeout("https://ipapi.co/json/", { cache:"no-store" });
+          const d = await r.json();
+          return {
+            city: normStr(d.city),
+            region: normStr(d.region_code || d.region),
+            country: normStr(d.country_code),
+            lat: toNum(d.latitude),
+            lon: toNum(d.longitude),
+            source: "ipapi.co"
+          };
+        },
+        async () => {
+          const r = await fetchWithTimeout("https://geolocation-db.com/json/", { cache:"no-store" });
+          const d = await r.json();
+          return {
+            city: normStr(d.city),
+            region: normStr(d.state),
+            country: normStr(d.country_code),
+            lat: toNum(d.latitude),
+            lon: toNum(d.longitude),
+            source: "geolocation-db"
+          };
+        }
+      ];
+
+      let lastErr = null;
+      for (const p of providers){
+        try{
+          const loc = await p();
+          if (loc.city || (loc.lat != null && loc.lon != null)) return loc;
+          lastErr = new Error("provider returned empty data");
+        }catch(e){
+          lastErr = e;
+        }
+      }
+      throw lastErr || new Error("all providers failed");
+    }
+    function formatPlaceUpper(loc){
+      const city = loc.city ? loc.city.toUpperCase() : null;
+      const region = loc.region ? loc.region.toUpperCase() : null;
+      const country = loc.country ? loc.country.toUpperCase() : null;
+
+      if (city && region) return `${city} - ${region}`;
+      if (city && country) return `${city} - ${country}`;
+      if (city) return city;
+      return "LOCAL NÃO IDENTIFICADO";
+    }
+
     (async function loadCity(){
       try{
-        const r = await fetch("https://ipapi.co/json/", { cache: "no-store" });
-        const d = await r.json();
-
-        const city = (d && d.city) ? String(d.city).toUpperCase() : null;
-        const uf = (d && (d.region_code || d.region)) ? String(d.region_code || d.region).toUpperCase() : null;
-        const cc = (d && d.country_code) ? String(d.country_code).toUpperCase() : null;
-
-        if (city && uf) cityEl.textContent = `${city} - ${uf}`;
-        else if (city && cc) cityEl.textContent = `${city} - ${cc}`;
-        else if (city) cityEl.textContent = city;
-        else cityEl.textContent = "LOCAL NÃO IDENTIFICADO";
-      } catch {
+        const loc = await getIpLocationRobust();
+        cityEl.textContent = formatPlaceUpper(loc);
+      }catch{
         cityEl.textContent = "LOCAL NÃO IDENTIFICADO";
       }
     })();
