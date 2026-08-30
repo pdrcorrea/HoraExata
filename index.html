@@ -3,181 +3,226 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>PontoView • Relógio</title>
+  <title>PontoView • Hora Exata</title>
 
-  <!-- Material Icons -->
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet" />
-  <!-- Fonte -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
   <style>
     :root{
-      --glass: rgba(255,255,255,.14);
-      --glass2: rgba(255,255,255,.08);
-      --stroke: rgba(255,255,255,.26);
-
-      --text: rgba(255,255,255,.94);
-      --dim: rgba(255,255,255,.78);
-      --faint: rgba(255,255,255,.60);
-
-      --shadow: 0 40px 120px rgba(0,0,0,.35);
-      --r: 34px;
-
-      /* Momento do dia (default: tarde) */
-      --dayGlow1: rgba(38,198,207,.18);
-      --dayGlow2: rgba(87,184,231,.14);
-      --washTop:  rgba(7,22,36,.20);
-      --washBot:  rgba(7,22,36,.42);
+      --pv-blue:#08479a;
+      --pv-blue-deep:#063776;
+      --pv-sky:#69cff2;
+      --pv-white:#f8fbff;
+      --pv-muted:rgba(248,251,255,.72);
+      --pv-faint:rgba(248,251,255,.5);
+      --accent-opacity:.22;
+      --bg-top:#0a4b9f;
+      --bg-bottom:#063b80;
     }
 
-    *{ box-sizing:border-box; }
-    html,body{ height:100%; }
+    *{box-sizing:border-box}
+    html,body{height:100%}
 
     body{
       margin:0;
-      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      color: var(--text);
       overflow:hidden;
-
+      font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      color:var(--pv-white);
       background:
-        radial-gradient(1400px 900px at 20% 15%, var(--dayGlow1), transparent 60%),
-        radial-gradient(1000px 700px at 80% 75%, var(--dayGlow2), transparent 60%),
-        url("assets/bg-blue.png");
-      background-size: cover;
-      background-position: center;
-
-      transition: background 1.6s ease;
+        radial-gradient(circle at 78% 20%, rgba(105,207,242,var(--accent-opacity)) 0 7%, transparent 26%),
+        radial-gradient(circle at 18% 82%, rgba(105,207,242,.12) 0 6%, transparent 25%),
+        linear-gradient(145deg,var(--bg-top),var(--bg-bottom));
+      transition:background 1.2s ease;
     }
 
-    .wash{
+    body::before,
+    body::after{
+      content:"";
       position:fixed;
-      inset:0;
-      background: linear-gradient(180deg, var(--washTop), var(--washBot));
-      z-index:0;
-      transition: background 1.6s ease;
+      border-radius:999px;
+      border:clamp(10px,1.1vw,18px) solid rgba(105,207,242,.2);
+      pointer-events:none;
     }
 
-    .noise{
-      position:fixed; inset:0; pointer-events:none; z-index:0;
-      opacity:.08;
-      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.4'/%3E%3C/svg%3E");
-      background-size:180px 180px;
-      mix-blend-mode:overlay;
+    body::before{
+      width:22vw;
+      height:22vw;
+      min-width:260px;
+      min-height:260px;
+      right:-8vw;
+      top:-10vw;
+      border-left-color:transparent;
+      border-bottom-color:transparent;
+      transform:rotate(24deg);
+    }
+
+    body::after{
+      width:18vw;
+      height:18vw;
+      min-width:220px;
+      min-height:220px;
+      left:-7vw;
+      bottom:-9vw;
+      border-top-color:transparent;
+      border-right-color:transparent;
+      transform:rotate(18deg);
+      opacity:.72;
     }
 
     .app{
-      height:100%;
-      display:grid;
-      place-items:center;
       position:relative;
       z-index:1;
-      padding: clamp(18px, 3vw, 42px);
+      height:100%;
+      padding:clamp(28px,4vw,68px);
+      display:flex;
+      align-items:center;
+      justify-content:center;
     }
 
-    .clockBadge{
-      padding: clamp(26px, 4.2vw, 56px) clamp(22px, 4.8vw, 64px);
-      border-radius: var(--r);
-      background: linear-gradient(135deg, var(--glass), var(--glass2));
-      border: 1px solid var(--stroke);
-      backdrop-filter: blur(22px);
-      -webkit-backdrop-filter: blur(22px);
-      box-shadow: var(--shadow);
+    .panel{
+      width:min(1180px,94vw);
       text-align:center;
-      width: min(980px, 92vw);
-
-      opacity: 0;
-      transform: translateY(18px) scale(.975);
-      animation: enter 1.2s cubic-bezier(.22,1,.36,1) forwards;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      opacity:0;
+      transform:translateY(14px);
+      animation:enter .9s cubic-bezier(.22,1,.36,1) forwards;
     }
 
     @keyframes enter{
-      to{ opacity:1; transform: translateY(0) scale(1); }
+      to{opacity:1;transform:translateY(0)}
     }
 
-    .icon{
-      width: 76px;
-      height: 76px;
-      margin: 0 auto clamp(14px, 2.4vw, 26px);
-      display:grid;
-      place-items:center;
-      border-radius: 22px;
-      background: rgba(255,255,255,.20);
-      border: 1px solid rgba(255,255,255,.32);
-      box-shadow: 0 14px 36px rgba(0,0,0,.25);
+    .brand-mark{
+      width:clamp(68px,6.6vw,94px);
+      aspect-ratio:1;
+      border-radius:28%;
+      border:3px solid rgba(248,251,255,.94);
+      position:relative;
+      margin-bottom:clamp(24px,3vh,38px);
     }
-    .icon .material-icons-outlined{
-      font-size: 40px;
-      color: #fff;
+
+    .brand-mark::before,
+    .brand-mark::after{
+      content:"";
+      position:absolute;
+      width:30%;
+      height:30%;
+      border:clamp(5px,.48vw,7px) solid var(--pv-sky);
+      border-radius:50%;
+      border-left-color:transparent;
+      border-bottom-color:transparent;
+    }
+
+    .brand-mark::before{
+      right:14%;
+      top:13%;
+      transform:rotate(8deg);
+    }
+
+    .brand-mark::after{
+      left:13%;
+      bottom:13%;
+      transform:rotate(188deg);
+    }
+
+    .brand-mark span{
+      position:absolute;
+      width:34%;
+      aspect-ratio:1;
+      border-radius:50%;
+      background:var(--pv-sky);
+      left:50%;
+      top:50%;
+      transform:translate(-50%,-50%);
     }
 
     .date{
-      font-size: clamp(14px, 1.6vw, 20px);
-      font-weight: 600;
-      letter-spacing: .18em;
-      text-transform: uppercase;
-      color: var(--dim);
-      margin-bottom: clamp(10px, 1.8vw, 18px);
+      font-size:clamp(17px,1.55vw,24px);
+      font-weight:600;
+      letter-spacing:.18em;
+      color:var(--pv-muted);
+      text-transform:uppercase;
+      margin-bottom:clamp(12px,1.8vh,22px);
     }
 
     .time{
-      font-size: clamp(96px, 16.5vw, 180px);
-      font-weight: 200;
-      letter-spacing: .04em;
-      line-height: 1;
+      font-size:clamp(118px,18vw,248px);
+      font-weight:300;
+      line-height:.9;
+      letter-spacing:-.055em;
+      color:var(--pv-white);
+      font-variant-numeric:tabular-nums;
+      text-shadow:0 1px 0 rgba(255,255,255,.06);
+    }
+
+    .divider{
+      width:clamp(80px,8vw,120px);
+      height:4px;
+      border-radius:99px;
+      background:var(--pv-sky);
+      margin:clamp(20px,3vh,34px) auto clamp(14px,2vh,22px);
+      opacity:.95;
     }
 
     .location{
-      margin-top: clamp(12px, 2.2vw, 18px);
       display:flex;
-      justify-content:center;
       align-items:center;
-      gap: 8px;
-      font-size: clamp(12px, 1.3vw, 16px);
-      letter-spacing: .14em;
-      text-transform: uppercase;
-      color: var(--faint);
+      justify-content:center;
+      gap:9px;
+      font-size:clamp(14px,1.35vw,20px);
+      font-weight:500;
+      letter-spacing:.15em;
+      text-transform:uppercase;
+      color:var(--pv-muted);
     }
-    .location .material-icons-outlined{ font-size: 20px; opacity:.95; }
+
+    .location .material-icons-outlined{
+      font-size:1.15em;
+      color:var(--pv-sky);
+    }
 
     .brand{
-      position: fixed;
-      bottom: 16px;
-      right: 18px;
-      opacity: .35;
+      position:fixed;
+      right:clamp(18px,2.5vw,42px);
+      bottom:clamp(16px,2.4vw,34px);
       z-index:2;
       pointer-events:none;
-      filter: drop-shadow(0 10px 18px rgba(0,0,0,.18));
-    }
-    .brand img{
-      height: 22px;
-      width:auto;
-      display:block;
+      opacity:.82;
     }
 
-    @media (max-width: 560px){
-      .icon{ width:66px; height:66px; border-radius:20px; }
-      .icon .material-icons-outlined{ font-size:34px; }
-      .brand{ right: 12px; bottom: 12px; opacity:.45; }
-      .brand img{ height: 20px; }
+    .brand img{
+      display:block;
+      width:auto;
+      height:clamp(22px,2.2vw,32px);
+      max-width:24vw;
+      object-fit:contain;
+      filter:brightness(0) invert(1);
+    }
+
+    @media (max-width:700px){
+      .app{padding:24px 18px 66px}
+      .brand-mark{border-radius:24%;margin-bottom:22px}
+      .date{letter-spacing:.12em}
+      .time{font-size:clamp(86px,25vw,150px)}
+      .location{letter-spacing:.1em}
+      .brand{right:14px;bottom:14px}
+      .brand img{height:20px;max-width:34vw}
     }
   </style>
 </head>
-
 <body>
-  <div class="wash" aria-hidden="true"></div>
-  <div class="noise" aria-hidden="true"></div>
-
   <main class="app">
-    <section class="clockBadge" aria-label="Painel de horário">
-      <div class="icon" aria-hidden="true">
-        <span class="material-icons-outlined">schedule</span>
-      </div>
-
+    <section class="panel" aria-label="Painel de horário">
+      <div class="brand-mark" aria-hidden="true"><span></span></div>
       <div class="date" id="date">—</div>
       <div class="time" id="time">--:--</div>
-
+      <div class="divider" aria-hidden="true"></div>
       <div class="location" aria-label="Localização aproximada por IP">
         <span class="material-icons-outlined" aria-hidden="true">location_on</span>
         <span id="city">Localizando…</span>
@@ -190,9 +235,8 @@
   </div>
 
   <script>
-    /* ===== Relógio (sem segundos) + data por extenso ===== */
     const weekday = ["DOMINGO","SEGUNDA","TERÇA","QUARTA","QUINTA","SEXTA","SÁBADO"];
-    const month   = ["JANEIRO","FEVEREIRO","MARÇO","ABRIL","MAIO","JUNHO","JULHO","AGOSTO","SETEMBRO","OUTUBRO","NOVEMBRO","DEZEMBRO"];
+    const month = ["JANEIRO","FEVEREIRO","MARÇO","ABRIL","MAIO","JUNHO","JULHO","AGOSTO","SETEMBRO","OUTUBRO","NOVEMBRO","DEZEMBRO"];
 
     const timeEl = document.getElementById("time");
     const dateEl = document.getElementById("date");
@@ -209,95 +253,94 @@
     (function startClock(){
       updateClock();
       const ms = 1000 - new Date().getMilliseconds();
-      setTimeout(() => { updateClock(); setInterval(updateClock, 1000); }, ms);
+      setTimeout(() => {
+        updateClock();
+        setInterval(updateClock,1000);
+      },ms);
     })();
 
-    /* ===== Momento do dia ===== */
     function applyDayMoment(){
       const hour = new Date().getHours();
       const root = document.documentElement;
 
-      if (hour >= 6 && hour < 12){
-        root.style.setProperty("--dayGlow1", "rgba(87,184,231,.30)");
-        root.style.setProperty("--dayGlow2", "rgba(38,198,207,.24)");
-        root.style.setProperty("--washTop",  "rgba(7,22,36,.14)");
-        root.style.setProperty("--washBot",  "rgba(7,22,36,.32)");
-      } else if (hour >= 12 && hour < 18){
-        root.style.setProperty("--dayGlow1", "rgba(38,198,207,.20)");
-        root.style.setProperty("--dayGlow2", "rgba(87,184,231,.16)");
-        root.style.setProperty("--washTop",  "rgba(7,22,36,.20)");
-        root.style.setProperty("--washBot",  "rgba(7,22,36,.42)");
-      } else {
-        root.style.setProperty("--dayGlow1", "rgba(31,95,168,.22)");
-        root.style.setProperty("--dayGlow2", "rgba(11,42,85,.34)");
-        root.style.setProperty("--washTop",  "rgba(7,22,36,.30)");
-        root.style.setProperty("--washBot",  "rgba(7,22,36,.58)");
+      if(hour >= 6 && hour < 12){
+        root.style.setProperty("--bg-top","#0b55ad");
+        root.style.setProperty("--bg-bottom","#08458f");
+        root.style.setProperty("--accent-opacity",".28");
+      }else if(hour >= 12 && hour < 18){
+        root.style.setProperty("--bg-top","#084b9f");
+        root.style.setProperty("--bg-bottom","#063b80");
+        root.style.setProperty("--accent-opacity",".22");
+      }else{
+        root.style.setProperty("--bg-top","#063a7c");
+        root.style.setProperty("--bg-bottom","#03275b");
+        root.style.setProperty("--accent-opacity",".16");
       }
     }
-    applyDayMoment();
-    setInterval(applyDayMoment, 10 * 60 * 1000);
 
-    /* ===== Localização por IP (robusta / sem permissão) ===== */
-    function fetchWithTimeout(url, opts = {}, timeoutMs = 4500){
+    applyDayMoment();
+    setInterval(applyDayMoment,10*60*1000);
+
+    function fetchWithTimeout(url,opts={},timeoutMs=4500){
       const ctrl = new AbortController();
       const t = setTimeout(() => ctrl.abort(), timeoutMs);
-      return fetch(url, { ...opts, signal: ctrl.signal }).finally(() => clearTimeout(t));
+      return fetch(url,{...opts,signal:ctrl.signal}).finally(() => clearTimeout(t));
     }
+
     function normStr(v){
-      if (v == null) return null;
+      if(v == null) return null;
       const s = String(v).trim();
       return s ? s : null;
     }
+
     function toNum(v){
       const n = Number(v);
       return Number.isFinite(n) ? n : null;
     }
+
     async function getIpLocationRobust(){
       const providers = [
         async () => {
-          const r = await fetchWithTimeout("https://ipwho.is/?lang=pt", { cache:"no-store" });
+          const r = await fetchWithTimeout("https://ipwho.is/?lang=pt",{cache:"no-store"});
           const d = await r.json();
-          if (!d || d.success === false) throw new Error("ipwho.is failed");
+          if(!d || d.success === false) throw new Error("ipwho.is failed");
           return {
-            city: normStr(d.city),
-            region: normStr(d.region_code || d.region),
-            country: normStr(d.country_code),
-            lat: toNum(d.latitude),
-            lon: toNum(d.longitude),
-            source: "ipwho.is"
+            city:normStr(d.city),
+            region:normStr(d.region_code || d.region),
+            country:normStr(d.country_code),
+            lat:toNum(d.latitude),
+            lon:toNum(d.longitude)
           };
         },
         async () => {
-          const r = await fetchWithTimeout("https://ipapi.co/json/", { cache:"no-store" });
+          const r = await fetchWithTimeout("https://ipapi.co/json/",{cache:"no-store"});
           const d = await r.json();
           return {
-            city: normStr(d.city),
-            region: normStr(d.region_code || d.region),
-            country: normStr(d.country_code),
-            lat: toNum(d.latitude),
-            lon: toNum(d.longitude),
-            source: "ipapi.co"
+            city:normStr(d.city),
+            region:normStr(d.region_code || d.region),
+            country:normStr(d.country_code),
+            lat:toNum(d.latitude),
+            lon:toNum(d.longitude)
           };
         },
         async () => {
-          const r = await fetchWithTimeout("https://geolocation-db.com/json/", { cache:"no-store" });
+          const r = await fetchWithTimeout("https://geolocation-db.com/json/",{cache:"no-store"});
           const d = await r.json();
           return {
-            city: normStr(d.city),
-            region: normStr(d.state),
-            country: normStr(d.country_code),
-            lat: toNum(d.latitude),
-            lon: toNum(d.longitude),
-            source: "geolocation-db"
+            city:normStr(d.city),
+            region:normStr(d.state),
+            country:normStr(d.country_code),
+            lat:toNum(d.latitude),
+            lon:toNum(d.longitude)
           };
         }
       ];
 
       let lastErr = null;
-      for (const p of providers){
+      for(const provider of providers){
         try{
-          const loc = await p();
-          if (loc.city || (loc.lat != null && loc.lon != null)) return loc;
+          const loc = await provider();
+          if(loc.city || (loc.lat != null && loc.lon != null)) return loc;
           lastErr = new Error("provider returned empty data");
         }catch(e){
           lastErr = e;
@@ -305,14 +348,15 @@
       }
       throw lastErr || new Error("all providers failed");
     }
+
     function formatPlaceUpper(loc){
       const city = loc.city ? loc.city.toUpperCase() : null;
       const region = loc.region ? loc.region.toUpperCase() : null;
       const country = loc.country ? loc.country.toUpperCase() : null;
 
-      if (city && region) return `${city} - ${region}`;
-      if (city && country) return `${city} - ${country}`;
-      if (city) return city;
+      if(city && region) return `${city} · ${region}`;
+      if(city && country) return `${city} · ${country}`;
+      if(city) return city;
       return "LOCAL NÃO IDENTIFICADO";
     }
 
