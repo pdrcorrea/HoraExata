@@ -17,7 +17,6 @@
       --pv-sky:#69cff2;
       --pv-white:#f8fbff;
       --pv-muted:rgba(248,251,255,.72);
-      --pv-faint:rgba(248,251,255,.5);
       --accent-opacity:.22;
       --bg-top:#0a4b9f;
       --bg-bottom:#063b80;
@@ -31,45 +30,113 @@
       overflow:hidden;
       font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
       color:var(--pv-white);
-      background:
-        radial-gradient(circle at 78% 20%, rgba(105,207,242,var(--accent-opacity)) 0 7%, transparent 26%),
-        radial-gradient(circle at 18% 82%, rgba(105,207,242,.12) 0 6%, transparent 25%),
-        linear-gradient(145deg,var(--bg-top),var(--bg-bottom));
+      background:linear-gradient(145deg,var(--bg-top),var(--bg-bottom));
       transition:background 1.2s ease;
     }
 
-    body::before,
-    body::after{
-      content:"";
+    .background-motion{
       position:fixed;
-      border-radius:999px;
-      border:clamp(10px,1.1vw,18px) solid rgba(105,207,242,.2);
+      inset:-12%;
       pointer-events:none;
+      overflow:hidden;
+      z-index:0;
     }
 
-    body::before{
+    .orb{
+      position:absolute;
+      border-radius:50%;
+      background:radial-gradient(circle,rgba(105,207,242,.22) 0%,rgba(105,207,242,.10) 38%,rgba(105,207,242,0) 72%);
+      filter:blur(4px);
+      will-change:transform;
+    }
+
+    .orb.one{
+      width:44vw;
+      height:44vw;
+      min-width:520px;
+      min-height:520px;
+      right:-10vw;
+      top:-12vw;
+      animation:floatOne 22s ease-in-out infinite alternate;
+    }
+
+    .orb.two{
+      width:36vw;
+      height:36vw;
+      min-width:420px;
+      min-height:420px;
+      left:-12vw;
+      bottom:-14vw;
+      opacity:.65;
+      animation:floatTwo 28s ease-in-out infinite alternate;
+    }
+
+    .orb.three{
+      width:24vw;
+      height:24vw;
+      min-width:300px;
+      min-height:300px;
+      left:48%;
+      top:32%;
+      opacity:.20;
+      animation:floatThree 34s ease-in-out infinite alternate;
+    }
+
+    .ring{
+      position:absolute;
+      border-radius:999px;
+      border:clamp(10px,1.05vw,17px) solid rgba(105,207,242,.16);
+      will-change:transform;
+    }
+
+    .ring.one{
       width:22vw;
       height:22vw;
       min-width:260px;
       min-height:260px;
-      right:-8vw;
-      top:-10vw;
+      right:-4vw;
+      top:-6vw;
       border-left-color:transparent;
       border-bottom-color:transparent;
-      transform:rotate(24deg);
+      animation:ringOne 30s linear infinite;
     }
 
-    body::after{
+    .ring.two{
       width:18vw;
       height:18vw;
       min-width:220px;
       min-height:220px;
-      left:-7vw;
-      bottom:-9vw;
+      left:-4vw;
+      bottom:-7vw;
       border-top-color:transparent;
       border-right-color:transparent;
-      transform:rotate(18deg);
-      opacity:.72;
+      opacity:.68;
+      animation:ringTwo 36s linear infinite reverse;
+    }
+
+    @keyframes floatOne{
+      from{transform:translate3d(-2%,0,0) scale(1)}
+      to{transform:translate3d(-9%,8%,0) scale(1.07)}
+    }
+
+    @keyframes floatTwo{
+      from{transform:translate3d(0,0,0) scale(1)}
+      to{transform:translate3d(10%,-7%,0) scale(1.1)}
+    }
+
+    @keyframes floatThree{
+      from{transform:translate3d(-50%,-50%,0) scale(.95)}
+      to{transform:translate3d(-43%,-45%,0) scale(1.08)}
+    }
+
+    @keyframes ringOne{
+      from{transform:rotate(16deg)}
+      to{transform:rotate(376deg)}
+    }
+
+    @keyframes ringTwo{
+      from{transform:rotate(8deg)}
+      to{transform:rotate(368deg)}
     }
 
     .app{
@@ -99,47 +166,25 @@
     }
 
     .brand-mark{
-      width:clamp(68px,6.6vw,94px);
+      width:clamp(78px,7.2vw,112px);
       aspect-ratio:1;
-      border-radius:28%;
-      border:3px solid rgba(248,251,255,.94);
-      position:relative;
       margin-bottom:clamp(24px,3vh,38px);
+      display:grid;
+      place-items:center;
+      filter:drop-shadow(0 10px 24px rgba(2,27,68,.12));
     }
 
-    .brand-mark::before,
-    .brand-mark::after{
-      content:"";
-      position:absolute;
-      width:30%;
-      height:30%;
-      border:clamp(5px,.48vw,7px) solid var(--pv-sky);
-      border-radius:50%;
-      border-left-color:transparent;
-      border-bottom-color:transparent;
+    .brand-mark img{
+      display:block;
+      width:100%;
+      height:100%;
+      object-fit:contain;
+      animation:iconBreath 7s ease-in-out infinite;
     }
 
-    .brand-mark::before{
-      right:14%;
-      top:13%;
-      transform:rotate(8deg);
-    }
-
-    .brand-mark::after{
-      left:13%;
-      bottom:13%;
-      transform:rotate(188deg);
-    }
-
-    .brand-mark span{
-      position:absolute;
-      width:34%;
-      aspect-ratio:1;
-      border-radius:50%;
-      background:var(--pv-sky);
-      left:50%;
-      top:50%;
-      transform:translate(-50%,-50%);
+    @keyframes iconBreath{
+      0%,100%{transform:translateY(0) scale(1)}
+      50%{transform:translateY(-4px) scale(1.025)}
     }
 
     .date{
@@ -205,9 +250,13 @@
       filter:brightness(0) invert(1);
     }
 
+    @media (prefers-reduced-motion:reduce){
+      .orb,.ring,.brand-mark img{animation:none!important}
+    }
+
     @media (max-width:700px){
       .app{padding:24px 18px 66px}
-      .brand-mark{border-radius:24%;margin-bottom:22px}
+      .brand-mark{width:76px;margin-bottom:22px}
       .date{letter-spacing:.12em}
       .time{font-size:clamp(86px,25vw,150px)}
       .location{letter-spacing:.1em}
@@ -217,9 +266,19 @@
   </style>
 </head>
 <body>
+  <div class="background-motion" aria-hidden="true">
+    <div class="orb one"></div>
+    <div class="orb two"></div>
+    <div class="orb three"></div>
+    <div class="ring one"></div>
+    <div class="ring two"></div>
+  </div>
+
   <main class="app">
     <section class="panel" aria-label="Painel de horário">
-      <div class="brand-mark" aria-hidden="true"><span></span></div>
+      <div class="brand-mark" aria-hidden="true">
+        <img src="assets/icon.png" alt="">
+      </div>
       <div class="date" id="date">—</div>
       <div class="time" id="time">--:--</div>
       <div class="divider" aria-hidden="true"></div>
